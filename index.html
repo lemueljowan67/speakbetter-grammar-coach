@@ -189,8 +189,8 @@
     </div>
 
     <div>
-      <textarea id="inputText" maxlength="20000" placeholder="Type or speak your sentence here...">She don't likes apples.</textarea>
-      <div class="char-count" id="charCount">23 / 20,000 characters</div>
+      <textarea id="inputText" maxlength="20000" placeholder="Type or speak your sentence here...">How much is your age</textarea>
+      <div class="char-count" id="charCount">20 / 20,000 characters</div>
     </div>
 
     <div class="button-grid">
@@ -207,7 +207,7 @@
     </div>
 
     <div class="section-title">Corrected Text (Preview)</div>
-    <div class="preview-box" id="previewBox">She don't likes apples.</div>
+    <div class="preview-box" id="previewBox">How much is your age</div>
 
     <div class="button-grid">
       <button class="btn-primary" id="copyCorrectedBtn">Copy Corrected Text</button>
@@ -251,14 +251,16 @@
       fixAllBtn.classList.remove("ready");
     });
 
-    function localFallbackCheck(text) {
+    function localPhrasingCheck(text) {
       let fixed = text;
       const issues = [];
 
       const rules = [
+        { regex: /\bhow much is your age\b\??/gi, replacement: "How old are you?", explanation: "Hindi 'How much is your age' ang natural na tanong sa edad—dapat 'How old are you?'." },
+        { regex: /\bwhat is your age\b\??/gi, replacement: "How old are you?", explanation: "Mas natural sa pakikipag-usap ang 'How old are you?'." },
         { regex: /\bis me\b/gi, replacement: "Am I", explanation: "Dapat 'Am I', hindi 'Is me'." },
         { regex: /\bme is\b/gi, replacement: "I am", explanation: "Dapat 'I am', hindi 'me is'." },
-        { regex: /\bcolor favorite\b/gi, replacement: "favorite color", explanation: "Dapat 'favorite color'." },
+        { regex: /\bcolor favorite\b/gi, replacement: "favorite color", explanation: "Nauuna ang 'favorite' bago ang 'color'." },
         { regex: /\bfood favorite\b/gi, replacement: "favorite food", explanation: "Dapat 'favorite food'." },
         { regex: /\bsong favorite\b/gi, replacement: "favorite song", explanation: "Dapat 'favorite song'." },
         { regex: /\bmovie favorite\b/gi, replacement: "favorite movie", explanation: "Dapat 'favorite movie'." },
@@ -305,8 +307,8 @@
     }
 
     async function checkGrammar() {
-      const text = inputText.value.trim();
-      if (!text) {
+      const originalText = inputText.value.trim();
+      if (!originalText) {
         statusBox.className = "status-box error";
         statusBox.textContent = "Maglagay muna ng pangungusap.";
         return;
@@ -325,14 +327,182 @@
       issuesList.innerHTML = "";
       issuesTitle.style.display = "none";
       statusBox.className = "status-box";
-      statusBox.textContent = "Sinusuri ang grammar, spelling, at punctuation...";
+      statusBox.textContent = "Sinusuri ang grammar, phrasing, at spelling...";
+
+      // Step 1: Run local phrasing & Taglish-to-English rules first
+      const localResult = localPhrasingCheck(originalText);
+      let workingText = localResult.correctedText;
+      let allIssues = [...localResult.issues];
 
       try {
+        // Step 2: Run LanguageTool online check on the updated text
         const params = new URLSearchParams();
-        params.append("text", text);
+        params.append("text", workingText);
         params.append("language", "en-US");
 
         const res = await fetch("https://api.languagetool.org/v2/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString()
+        });
+
+        if (!res.ok) throw new Error(`Server status ${res.status}`);
+
+        const data = await res.json();
+        const matches = data.matches || [];
+
+        if (matches.length > 0) {
+          let corrected = workingText;
+          const sortedMatches = [...matches].sort((a, b) => b.offset - a.offset);
+
+          sortedMatches.forEach((m) => {
+            const orig = workingText.slice(m.offset, m.offset + m.length);
+            const suggestion = m.replacements?.[0]?.value;
+            if (suggestion) {
+              corrected =
+                corrected.slice(0, m.offset) +
+                suggestion +
+                corrected.slice(m.offset + m.length);
+              allIssues.push({
+                original: orig,
+                suggestion,
+                explanation: m.message
+              });
+            }
+          });
+          workingText = corrected;
+        }
+      } catch (err) {
+        // If online server fails/limits, keep the localResult
+      } finally {
+        currentCorrectedText = workingText;
+        previewBox.textContent = workingText;
+
+        if (allIssues.length === 0 && workingText === originalText) {
+          statusBox.className = "status-box ok";
+          statusBox.textContent = "Walang nakitang error. Tama na ang pangungusap!";
+          fixAllBtn.disabled = true;
+          fixAllBtn.classList.remove("ready");
+        } else {
+          renderIssues(allIssues);
+          statusBox.className = "status-box";
+          statusBox.textContent = `May nakitang ${allIssues.length} pagbabago. I-click ang "Fix All" para maitama.`;
+          fixAllBtn.disabled = false;
+          fixAllBtn.classList.add("ready");
+        }
+
+        setTimeout(() => {
+          checkBtn.disabled = false;
+          checkBtn.textContent = "Check Grammar";
+        }, 1200);
+      }
+    }
+
+    function renderIssues(issues) {
+      issuesList.innerHTML = "";
+      if (!issues.length) return;
+      issuesTitle.style.display = "block";
+      issues.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "issue-card";
+        div.innerHTML = `
+          <div>
+            <span class="old-text">${escapeHtml(item.original)}</span>
+            <span class="new-text">→ ${escapeHtml(item.suggestion)}</span>
+          </div>
+          <div class="issue-reason">${escapeHtml(item.explanation || "")}</div>
+        `;
+        issuesList.appendChild(div);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    checkBtn.addEventListener("click", checkGrammar);
+
+    fixAllBtn.addEventListener("click", () => {
+      if (!currentCorrectedText) return;
+      inputText.value = currentCorrectedText;
+      updateCharCount();
+      statusBox.className = "status-box ok";
+      statusBox.textContent = "Naitama na ang text!";
+      fixAllBtn.disabled = true;
+      fixAllBtn.classList.remove("ready");
+      issuesList.innerHTML = "";
+      issuesTitle.style.display = "none";
+    });
+
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(inputText.value);
+      copyBtn.textContent = "Copied ✓";
+      setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+    });
+
+    copyCorrectedBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(previewBox.textContent);
+      copyCorrectedBtn.textContent = "Copied ✓";
+      setTimeout(() => (copyCorrectedBtn.textContent = "Copy Corrected Text"), 1500);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      inputText.value = "";
+      previewBox.textContent = "";
+      currentCorrectedText = "";
+      issuesList.innerHTML = "";
+      issuesTitle.style.display = "none";
+      fixAllBtn.disabled = true;
+      fixAllBtn.classList.remove("ready");
+      statusBox.className = "status-box";
+      statusBox.textContent = "Na-clear na.";
+      updateCharCount();
+    });
+
+    function speakText(text) {
+      if (!text.trim()) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      window.speechSynthesis.speak(u);
+    }
+
+    listenBtn.addEventListener("click", () => speakText(inputText.value));
+    listenCorrectedBtn.addEventListener("click", () => speakText(previewBox.textContent));
+
+    speakBtn.addEventListener("click", () => {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        alert("Hindi suportado ang speech recognition sa browser na ito.");
+        return;
+      }
+      if (isListening && recognition) {
+        recognition.stop();
+        return;
+      }
+      recognition = new SR();
+      recognition.lang = "en-US";
+      recognition.onstart = () => {
+        isListening = true;
+        speakBtn.textContent = "⏹ Stop";
+        speakBtn.classList.add("btn-listening");
+      };
+      recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        inputText.value = inputText.value ? `${inputText.value.trim()} ${transcript}` : transcript;
+        updateCharCount();
+        previewBox.textContent = inputText.value;
+      };
+      recognition.onend = () => {
+        isListening = false;
+        speakBtn.textContent = "🎤 Speak";
+        speakBtn.classList.remove("btn-listening");
+      };
+      recognition.start();
+    });
+  </script>
+</body>
+</html>ch("https://api.languagetool.org/v2/check", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: params.toString()
