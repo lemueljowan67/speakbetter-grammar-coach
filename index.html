@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpeakBetter AI - Grammar Coach</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #0b1120;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 20px 14px 40px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-align: center;
+      color: #e2e8f0;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      background-color: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+      color: #f1f5f9;
+      font-size: 1rem;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #3b82f6;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-success {
+      background-color: #166534;
+      color: #4ade80;
+    }
+
+    .btn-success.ready {
+      background-color: #15803d;
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: #334155;
+      color: #f1f5f9;
+    }
+
+    .btn-listening {
+      background-color: #dc2626;
+      color: #ffffff;
+    }
+
+    .status-box {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .status-box.ok {
+      color: #4ade80;
+      border-color: #166534;
+    }
+
+    .status-box.error {
+      color: #f87171;
+      border-color: #991b1b;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-top: 4px;
+    }
+
+    .preview-box {
+      background-color: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 54px;
+      font-size: 0.98rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+    }
+
+    .issues-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .issue-card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+
+    .old-text {
+      color: #f87171;
+      text-decoration: line-through;
+      margin-right: 6px;
+    }
+
+    .new-text {
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    .issue-reason {
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <h1>SpeakBetter AI - Grammar Coach</h1>
+    </div>
+
+    <div>
+      <textarea id="inputText" maxlength="20000" placeholder="Type or speak your sentence here...">She don't likes apples.</textarea>
+      <div class="char-count" id="charCount">23 / 20,000 characters</div>
+    </div>
+
+    <div class="button-grid">
+      <button class="btn-primary" id="checkBtn">Check Grammar</button>
+      <button class="btn-success" id="fixAllBtn" disabled>Fix All</button>
+      <button class="btn-secondary" id="speakBtn">🎤 Speak</button>
+      <button class="btn-secondary" id="listenBtn">🔊 Listen</button>
+      <button class="btn-secondary" id="copyBtn">Copy</button>
+      <button class="btn-secondary" id="clearBtn">Clear</button>
+    </div>
+
+    <div class="status-box" id="statusBox">
+      Handa na para sa araw-araw na gamit. I-click ang <strong>Check Grammar</strong>.
+    </div>
+
+    <div class="section-title">Corrected Text (Preview)</div>
+    <div class="preview-box" id="previewBox">She don't likes apples.</div>
+
+    <div class="button-grid">
+      <button class="btn-primary" id="copyCorrectedBtn">Copy Corrected Text</button>
+      <button class="btn-secondary" id="listenCorrectedBtn">🔊 Listen to Correction</button>
+    </div>
+
+    <div class="section-title" id="issuesTitle" style="display: none;">Detected Issues</div>
+    <div class="issues-list" id="issuesList"></div>
+  </div>
+
+  <script>
+    const inputText = document.getElementById("inputText");
+    const charCount = document.getElementById("charCount");
+    const checkBtn = document.getElementById("checkBtn");
+    const fixAllBtn = document.getElementById("fixAllBtn");
+    const speakBtn = document.getElementById("speakBtn");
+    const listenBtn = document.getElementById("listenBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const statusBox = document.getElementById("statusBox");
+    const previewBox = document.getElementById("previewBox");
+    const copyCorrectedBtn = document.getElementById("copyCorrectedBtn");
+    const listenCorrectedBtn = document.getElementById("listenCorrectedBtn");
+    const issuesTitle = document.getElementById("issuesTitle");
+    const issuesList = document.getElementById("issuesList");
+
+    let currentCorrectedText = inputText.value;
+    let recognition = null;
+    let isListening = false;
+    let lastCheckTime = 0;
+
+    function updateCharCount() {
+      charCount.textContent = `${inputText.value.length.toLocaleString()} / 20,000 characters`;
+    }
+
+    inputText.addEventListener("input", () => {
+      updateCharCount();
+      previewBox.textContent = inputText.value;
+      currentCorrectedText = inputText.value;
+      fixAllBtn.disabled = true;
+      fixAllBtn.classList.remove("ready");
+    });
+
+    function localFallbackCheck(text) {
+      let fixed = text;
+      const issues = [];
+
+      const rules = [
+        { regex: /\bis me\b/gi, replacement: "Am I", explanation: "Dapat 'Am I', hindi 'Is me'." },
+        { regex: /\bme is\b/gi, replacement: "I am", explanation: "Dapat 'I am', hindi 'me is'." },
+        { regex: /\bcolor favorite\b/gi, replacement: "favorite color", explanation: "Dapat 'favorite color'." },
+        { regex: /\bfood favorite\b/gi, replacement: "favorite food", explanation: "Dapat 'favorite food'." },
+        { regex: /\bsong favorite\b/gi, replacement: "favorite song", explanation: "Dapat 'favorite song'." },
+        { regex: /\bmovie favorite\b/gi, replacement: "favorite movie", explanation: "Dapat 'favorite movie'." },
+        { regex: /\bshe don't\b/gi, replacement: "she doesn't", explanation: "Dapat 'she doesn't', hindi 'she don't'." },
+        { regex: /\bhe don't\b/gi, replacement: "he doesn't", explanation: "Dapat 'he doesn't', hindi 'he don't'." },
+        { regex: /\bit don't\b/gi, replacement: "it doesn't", explanation: "Dapat 'it doesn't', hindi 'it don't'." },
+        { regex: /\bdont\b/gi, replacement: "don't", explanation: "Kulangan ng apostrophe ang 'don't'." },
+        { regex: /\bcant\b/gi, replacement: "can't", explanation: "Kulangan ng apostrophe ang 'can't'." },
+        { regex: /\bwont\b/gi, replacement: "won't", explanation: "Kulangan ng apostrophe ang 'won't'." },
+        { regex: /\bim\b/gi, replacement: "I'm", explanation: "Dapat 'I'm'." },
+        { regex: /\bmore better\b/gi, replacement: "better", explanation: "Hindi kailangan ng 'more' sa 'better'." },
+        { regex: /\ba apple\b/gi, replacement: "an apple", explanation: "Gamitin ang 'an' bago ang vowel sound na 'apple'." }
+      ];
+
+      rules.forEach((rule) => {
+        const matches = fixed.match(rule.regex);
+        if (matches) {
+          matches.forEach((m) => {
+            if (m !== rule.replacement) {
+              issues.push({
+                original: m,
+                suggestion: rule.replacement,
+                explanation: rule.explanation
+              });
+            }
+          });
+          fixed = fixed.replace(rule.regex, rule.replacement);
+        }
+      });
+
+      if (fixed.length > 0 && /[a-z]/.test(fixed[0])) {
+        const capitalized = fixed[0].toUpperCase() + fixed.slice(1);
+        if (capitalized !== fixed) {
+          issues.push({
+            original: fixed.slice(0, 12),
+            suggestion: capitalized.slice(0, 12),
+            explanation: "Dapat naka-capital letter ang simula ng pangungusap."
+          });
+          fixed = capitalized;
+        }
+      }
+
+      return { correctedText: fixed, issues };
+    }
+
+    async function checkGrammar() {
+      const text = inputText.value.trim();
+      if (!text) {
+        statusBox.className = "status-box error";
+        statusBox.textContent = "Maglagay muna ng pangungusap.";
+        return;
+      }
+
+      const now = Date.now();
+      if (now - lastCheckTime < 1500) {
+        statusBox.className = "status-box";
+        statusBox.textContent = "Sandali lang—maghintay ng 1–2 segundo bago mag-check ulit.";
+        return;
+      }
+      lastCheckTime = now;
+
+      checkBtn.disabled = true;
+      checkBtn.textContent = "Checking...";
+      issuesList.innerHTML = "";
+      issuesTitle.style.display = "none";
+      statusBox.className = "status-box";
+      statusBox.textContent = "Sinusuri ang grammar, spelling, at punctuation...";
+
+      try {
+        const params = new URLSearchParams();
+        params.append("text", text);
+        params.append("language", "en-US");
+
+        const res = await fetch("https://api.languagetool.org/v2/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString()
+        });
+
+        if (!res.ok) throw new Error(`Server status ${res.status}`);
+
+        const data = await res.json();
+        const matches = data.matches || [];
+
+        if (matches.length === 0) {
+          const fallback = localFallbackCheck(text);
+          currentCorrectedText = fallback.correctedText;
+          previewBox.textContent = fallback.correctedText;
+
+          if (fallback.correctedText !== text) {
+            renderIssues(fallback.issues);
+            statusBox.className = "status-box";
+            statusBox.textContent = `May nakitang ${fallback.issues.length} pagbabago. I-click ang "Fix All".`;
+            fixAllBtn.disabled = false;
+            fixAllBtn.classList.add("ready");
+          } else {
+            statusBox.className = "status-box ok";
+            statusBox.textContent = "Walang nakitang error. Tama na ang pangungusap!";
+            fixAllBtn.disabled = true;
+            fixAllBtn.classList.remove("ready");
+          }
+        } else {
+          let corrected = text;
+          const sortedMatches = [...matches].sort((a, b) => b.offset - a.offset);
+          const issues = [];
+
+          sortedMatches.forEach((m) => {
+            const original = text.slice(m.offset, m.offset + m.length);
+            const suggestion = m.replacements?.[0]?.value;
+            if (suggestion) {
+              corrected =
+                corrected.slice(0, m.offset) +
+                suggestion +
+                corrected.slice(m.offset + m.length);
+              issues.unshift({
+                original,
+                suggestion,
+                explanation: m.message
+              });
+            }
+          });
+
+          currentCorrectedText = corrected;
+          previewBox.textContent = corrected;
+          renderIssues(issues);
+
+          statusBox.className = "status-box";
+          statusBox.textContent = `May nakitang ${issues.length} pagbabago. I-click ang "Fix All" para maitama.`;
+          fixAllBtn.disabled = false;
+          fixAllBtn.classList.add("ready");
+        }
+      } catch (err) {
+        const fallback = localFallbackCheck(text);
+        currentCorrectedText = fallback.correctedText;
+        previewBox.textContent = fallback.correctedText;
+        renderIssues(fallback.issues);
+        statusBox.className = "status-box";
+        statusBox.textContent = "Naka-backup check mode ngayon dahil nag-limit o bumagal ang online server.";
+        if (fallback.correctedText !== text) {
+          fixAllBtn.disabled = false;
+          fixAllBtn.classList.add("ready");
+        }
+      } finally {
+        setTimeout(() => {
+          checkBtn.disabled = false;
+          checkBtn.textContent = "Check Grammar";
+        }, 1200);
+      }
+    }
+
+    function renderIssues(issues) {
+      issuesList.innerHTML = "";
+      if (!issues.length) return;
+      issuesTitle.style.display = "block";
+      issues.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "issue-card";
+        div.innerHTML = `
+          <div>
+            <span class="old-text">${escapeHtml(item.original)}</span>
+            <span class="new-text">→ ${escapeHtml(item.suggestion)}</span>
+          </div>
+          <div class="issue-reason">${escapeHtml(item.explanation || "")}</div>
+        `;
+        issuesList.appendChild(div);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    checkBtn.addEventListener("click", checkGrammar);
+
+    fixAllBtn.addEventListener("click", () => {
+      if (!currentCorrectedText) return;
+      inputText.value = currentCorrectedText;
+      updateCharCount();
+      statusBox.className = "status-box ok";
+      statusBox.textContent = "Naitama na ang text!";
+      fixAllBtn.disabled = true;
+      fixAllBtn.classList.remove("ready");
+      issuesList.innerHTML = "";
+      issuesTitle.style.display = "none";
+    });
+
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(inputText.value);
+      copyBtn.textContent = "Copied ✓";
+      setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+    });
+
+    copyCorrectedBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(previewBox.textContent);
+      copyCorrectedBtn.textContent = "Copied ✓";
+      setTimeout(() => (copyCorrectedBtn.textContent = "Copy Corrected Text"), 1500);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      inputText.value = "";
+      previewBox.textContent = "";
+      currentCorrectedText = "";
+      issuesList.innerHTML = "";
+      issuesTitle.style.display = "none";
+      fixAllBtn.disabled = true;
+      fixAllBtn.classList.remove("ready");
+      statusBox.className = "status-box";
+      statusBox.textContent = "Na-clear na.";
+      updateCharCount();
+    });
+
+    function speakText(text) {
+      if (!text.trim()) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      window.speechSynthesis.speak(u);
+    }
+
+    listenBtn.addEventListener("click", () => speakText(inputText.value));
+    listenCorrectedBtn.addEventListener("click", () => speakText(previewBox.textContent));
+
+    speakBtn.addEventListener("click", () => {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        alert("Hindi suportado ang speech recognition sa browser na ito.");
+        return;
+      }
+      if (isListening && recognition) {
+        recognition.stop();
+        return;
+      }
+      recognition = new SR();
+      recognition.lang = "en-US";
+      recognition.onstart = () => {
+        isListening = true;
+        speakBtn.textContent = "⏹ Stop";
+        speakBtn.classList.add("btn-listening");
+      };
+      recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        inputText.value = inputText.value ? `${inputText.value.trim()} ${transcript}` : transcript;
+        updateCharCount();
+        previewBox.textContent = inputText.value;
+      };
+      recognition.onend = () => {
+        isListening = false;
+        speakBtn.textContent = "🎤 Speak";
+        speakBtn.classList.remove("btn-listening");
+      };
+      recognition.start();
+    });
+  </script>
+</body>
+</html>
