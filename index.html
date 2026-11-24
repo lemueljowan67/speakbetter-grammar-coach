@@ -1,686 +1,474 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SpeakBetter AI - Grammar Coach</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpeakBetter AI</title>
 
-    body {
-      background-color: #0b1120;
-      color: #f8fafc;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 20px 14px 40px;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .header h1 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      text-align: center;
-      color: #e2e8f0;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 160px;
-      background-color: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 14px;
-      color: #f1f5f9;
-      font-size: 1rem;
-      line-height: 1.5;
-      resize: vertical;
-      outline: none;
-    }
-
-    textarea:focus {
-      border-color: #3b82f6;
-    }
-
-    .char-count {
-      text-align: right;
-      font-size: 0.82rem;
-      color: #94a3b8;
-    }
-
-    .button-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 11px 14px;
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background-color: #2563eb;
-      color: #ffffff;
-    }
-
-    .btn-success {
-      background-color: #166534;
-      color: #4ade80;
-    }
-
-    .btn-success.ready {
-      background-color: #15803d;
-      color: #ffffff;
-    }
-
-    .btn-secondary {
-      background-color: #334155;
-      color: #f1f5f9;
-    }
-
-    .btn-listening {
-      background-color: #dc2626;
-      color: #ffffff;
-    }
-
-    .status-box {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      color: #cbd5e1;
-    }
-
-    .status-box.ok {
-      color: #4ade80;
-      border-color: #166534;
-    }
-
-    .status-box.error {
-      color: #f87171;
-      border-color: #991b1b;
-    }
-
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #f8fafc;
-      margin-top: 4px;
-    }
-
-    .preview-box {
-      background-color: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 12px;
-      min-height: 54px;
-      font-size: 0.98rem;
-      line-height: 1.5;
-      color: #e2e8f0;
-      white-space: pre-wrap;
-    }
-
-    .issues-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .issue-card {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9rem;
-    }
-
-    .old-text {
-      color: #f87171;
-      text-decoration: line-through;
-      margin-right: 6px;
-    }
-
-    .new-text {
-      color: #4ade80;
-      font-weight: 600;
-    }
-
-    .issue-reason {
-      font-size: 0.82rem;
-      color: #94a3b8;
-    }
-  </style>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#090d19;--panel:#121a2c;--panel2:#18233a;
+--border:#293650;--text:#f3f5ff;--muted:#99a7c1;
+--purple:#8875ff;--green:#51d6a0;--red:#ff7777
+}
+body{
+background:var(--bg);color:var(--text);
+font-family:Arial,Helvetica,sans-serif;
+min-height:100vh;padding:20px 14px
+}
+.container{max-width:900px;margin:auto}
+header{text-align:center;padding:24px 0 30px}
+.logo{font-size:29px;font-weight:800;letter-spacing:-1px}
+.logo span{color:var(--purple)}
+header p{color:var(--muted);margin-top:10px;font-size:14px;line-height:1.6}
+.panel{
+background:var(--panel);border:1px solid var(--border);
+border-radius:17px;padding:20px;margin-bottom:17px
+}
+.heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.heading h2{font-size:16px}
+textarea{
+width:100%;min-height:180px;resize:vertical;
+background:#0c1322;color:var(--text);
+border:1px solid var(--border);border-radius:12px;
+padding:15px;font-size:16px;line-height:1.7;
+font-family:inherit;outline:none
+}
+textarea:focus{border-color:var(--purple)}
+textarea::placeholder{color:#65738d}
+.counter{text-align:right;color:var(--muted);font-size:12px;margin-top:7px}
+.label{display:block;color:var(--muted);font-size:13px;margin:17px 0 9px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.mode{
+background:var(--panel2);color:var(--text);
+border:1px solid var(--border);padding:12px 8px;
+border-radius:10px;cursor:pointer;font-size:13px
+}
+.mode.active{border-color:var(--purple);color:#c9c1ff;background:#292344}
+button{cursor:pointer;font-family:inherit}
+.actions{display:flex;gap:10px;margin-top:17px}
+.primary{
+background:linear-gradient(135deg,#9180ff,#6652e8);
+color:white;border:0;border-radius:10px;
+padding:14px;font-size:15px;font-weight:bold;flex:1
+}
+.secondary{
+background:var(--panel2);color:var(--muted);
+border:1px solid var(--border);border-radius:10px;padding:12px 17px
+}
+button:disabled{opacity:.55;cursor:wait}
+.result{display:none}
+.result.show{display:block}
+.result-text{
+white-space:pre-wrap;overflow-wrap:anywhere;
+background:#0c1322;border:1px solid var(--border);
+border-radius:12px;padding:17px;font-size:16px;line-height:1.8
+}
+.result-actions{display:flex;gap:10px;margin-top:12px}
+.result-actions button{flex:1}
+.explanation{margin-top:22px}
+.explanation h3{font-size:15px;margin-bottom:12px}
+.summary{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:12px}
+.item{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-top:9px}
+.item p{font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.bad{color:var(--red)}
+.good{color:var(--green);margin-top:5px}
+.why{color:var(--muted);margin-top:7px}
+.status{display:none;text-align:center;font-size:13px;margin-top:13px;line-height:1.6;color:#c3baff}
+.status.show{display:block}
+.status.error{color:var(--red)}
+.settings summary{color:#c4bbff;cursor:pointer;font-size:14px}
+.settings-content{margin-top:15px}
+.settings-content label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+.settings-content input{
+width:100%;background:#0c1322;color:white;
+border:1px solid var(--border);border-radius:9px;padding:12px;font-size:14px
+}
+.note{font-size:12px;color:var(--muted);line-height:1.65;margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;line-height:1.7;margin:25px 0}
+@media(max-width:600px){
+body{padding:12px}
+.panel{padding:15px}
+.modes{grid-template-columns:1fr}
+.actions,.result-actions{flex-direction:column}
+.secondary{width:100%}
+}
+</style>
 </head>
+
 <body>
-  <div class="app-container">
-    <div class="header">
-      <h1>SpeakBetter AI - Grammar Coach</h1>
-    </div>
+<div class="container">
 
-    <div>
-      <textarea id="inputText" maxlength="20000" placeholder="Type or speak your sentence here...">How much is your age</textarea>
-      <div class="char-count" id="charCount">20 / 20,000 characters</div>
-    </div>
+<header>
+  <div class="logo">✦ SpeakBetter <span>AI</span></div>
+  <p>
+    Advanced grammar correction, sentence reconstruction,
+    and natural English writing.
+  </p>
+</header>
 
-    <div class="button-grid">
-      <button class="btn-primary" id="checkBtn">Check Grammar</button>
-      <button class="btn-success" id="fixAllBtn" disabled>Fix All</button>
-      <button class="btn-secondary" id="speakBtn">🎤 Speak</button>
-      <button class="btn-secondary" id="listenBtn">🔊 Listen</button>
-      <button class="btn-secondary" id="copyBtn">Copy</button>
-      <button class="btn-secondary" id="clearBtn">Clear</button>
-    </div>
+<section class="panel">
 
-    <div class="status-box" id="statusBox">
-      Handa na para sa araw-araw na gamit. I-click ang <strong>Check Grammar</strong>.
-    </div>
+<div class="heading">
+<h2>Your Text</h2>
+</div>
 
-    <div class="section-title">Corrected Text (Preview)</div>
-    <div class="preview-box" id="previewBox">How much is your age</div>
+<textarea id="input" maxlength="12000"
+placeholder="Type or paste your English here. You can enter sentences with incorrect grammar, spelling, tense, or word order."></textarea>
 
-    <div class="button-grid">
-      <button class="btn-primary" id="copyCorrectedBtn">Copy Corrected Text</button>
-      <button class="btn-secondary" id="listenCorrectedBtn">🔊 Listen to Correction</button>
-    </div>
+<div class="counter" id="counter">0 / 12,000 characters</div>
 
-    <div class="section-title" id="issuesTitle" style="display: none;">Detected Issues</div>
-    <div class="issues-list" id="issuesList"></div>
-  </div>
+<span class="label">Correction mode</span>
 
-  <script>
-    const inputText = document.getElementById("inputText");
-    const charCount = document.getElementById("charCount");
-    const checkBtn = document.getElementById("checkBtn");
-    const fixAllBtn = document.getElementById("fixAllBtn");
-    const speakBtn = document.getElementById("speakBtn");
-    const listenBtn = document.getElementById("listenBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const statusBox = document.getElementById("statusBox");
-    const previewBox = document.getElementById("previewBox");
-    const copyCorrectedBtn = document.getElementById("copyCorrectedBtn");
-    const listenCorrectedBtn = document.getElementById("listenCorrectedBtn");
-    const issuesTitle = document.getElementById("issuesTitle");
-    const issuesList = document.getElementById("issuesList");
+<div class="modes">
+<button class="mode active" data-mode="correct">Grammar Correction</button>
+<button class="mode" data-mode="reconstruct">Sentence Reconstruction</button>
+<button class="mode" data-mode="natural">Natural English</button>
+</div>
 
-    let currentCorrectedText = inputText.value;
-    let recognition = null;
-    let isListening = false;
-    let lastCheckTime = 0;
+<details class="settings panel" style="margin-top:17px;padding:14px">
+<summary>⚙️ AI Connection Settings (optional)</summary>
 
-    function updateCharCount() {
-      charCount.textContent = `${inputText.value.length.toLocaleString()} / 20,000 characters`;
-    }
+<div class="settings-content">
+<label>AI API Key</label>
+<input id="apiKey" type="password" placeholder="Paste your API key">
 
-    inputText.addEventListener("input", () => {
-      updateCharCount();
-      previewBox.textContent = inputText.value;
-      currentCorrectedText = inputText.value;
-      fixAllBtn.disabled = true;
-      fixAllBtn.classList.remove("ready");
+<label>AI API Endpoint</label>
+<input id="endpoint" value="https://api.openai.com/v1/responses">
+
+<label>AI Model</label>
+<input id="model" value="gpt-4.1-mini">
+
+<p class="note">
+AI mode requires a compatible API service and key. The key is kept
+in this page's memory only and is not saved. Do not publish this
+page with your personal key inside it. Direct browser connections
+may be blocked by the provider's security/CORS settings.
+</p>
+</div>
+</details>
+
+<div class="actions">
+<button class="primary" id="check">✦ Correct My Text</button>
+<button class="secondary" id="clear">Clear</button>
+</div>
+
+<div id="status" class="status"></div>
+</section>
+
+<section class="panel result" id="result">
+
+<div class="heading">
+<h2>Corrected Text</h2>
+</div>
+
+<div id="corrected" class="result-text"></div>
+
+<div class="result-actions">
+<button class="primary" id="apply">Apply Correction</button>
+<button class="secondary" id="copy">Copy Corrected Text</button>
+</div>
+
+<div class="explanation">
+<h3>Correction Explanation</h3>
+<div id="summary" class="summary"></div>
+<div id="details"></div>
+</div>
+</section>
+
+<footer>
+SpeakBetter AI · Grammar Correction & Sentence Reconstruction
+<br>
+Review AI suggestions before using them.
+</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+let mode = "correct";
+let lastCorrected = "";
+
+$("input").addEventListener("input", () => {
+  $("counter").textContent =
+    `${$("input").value.length.toLocaleString()} / 12,000 characters`;
+});
+
+document.querySelectorAll(".mode").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mode").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    mode = btn.dataset.mode;
+  });
+});
+
+function status(message, error=false) {
+  $("status").textContent = message;
+  $("status").className = "status show" + (error ? " error" : "");
+}
+
+function escapeHTML(text) {
+  return String(text)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function showResults(corrected, explanation, corrections=[]) {
+  lastCorrected = corrected;
+  $("corrected").textContent = corrected;
+  $("summary").textContent = explanation || "";
+  $("details").innerHTML = "";
+
+  if (!corrections.length) {
+    $("details").innerHTML = `
+      <div class="item">
+        <p class="good">No detailed correction notes were returned.</p>
+      </div>`;
+  } else {
+    corrections.forEach(c => {
+      const item = document.createElement("div");
+      item.className = "item";
+      item.innerHTML = `
+        <p class="bad"><strong>Original:</strong> ${escapeHTML(c.original || "")}</p>
+        <p class="good"><strong>Corrected:</strong> ${escapeHTML(c.corrected || "")}</p>
+        <p class="why">${escapeHTML(c.explanation || "")}</p>`;
+      $("details").appendChild(item);
     });
+  }
 
-    function localPhrasingCheck(text) {
-      let fixed = text;
-      const issues = [];
+  $("result").classList.add("show");
+}
 
-      const rules = [
-        { regex: /\bhow much is your age\b\??/gi, replacement: "How old are you?", explanation: "Hindi 'How much is your age' ang natural na tanong sa edad—dapat 'How old are you?'." },
-        { regex: /\bwhat is your age\b\??/gi, replacement: "How old are you?", explanation: "Mas natural sa pakikipag-usap ang 'How old are you?'." },
-        { regex: /\bis me\b/gi, replacement: "Am I", explanation: "Dapat 'Am I', hindi 'Is me'." },
-        { regex: /\bme is\b/gi, replacement: "I am", explanation: "Dapat 'I am', hindi 'me is'." },
-        { regex: /\bcolor favorite\b/gi, replacement: "favorite color", explanation: "Nauuna ang 'favorite' bago ang 'color'." },
-        { regex: /\bfood favorite\b/gi, replacement: "favorite food", explanation: "Dapat 'favorite food'." },
-        { regex: /\bsong favorite\b/gi, replacement: "favorite song", explanation: "Dapat 'favorite song'." },
-        { regex: /\bmovie favorite\b/gi, replacement: "favorite movie", explanation: "Dapat 'favorite movie'." },
-        { regex: /\bshe don't\b/gi, replacement: "she doesn't", explanation: "Dapat 'she doesn't', hindi 'she don't'." },
-        { regex: /\bhe don't\b/gi, replacement: "he doesn't", explanation: "Dapat 'he doesn't', hindi 'he don't'." },
-        { regex: /\bit don't\b/gi, replacement: "it doesn't", explanation: "Dapat 'it doesn't', hindi 'it don't'." },
-        { regex: /\bdont\b/gi, replacement: "don't", explanation: "Kulangan ng apostrophe ang 'don't'." },
-        { regex: /\bcant\b/gi, replacement: "can't", explanation: "Kulangan ng apostrophe ang 'can't'." },
-        { regex: /\bwont\b/gi, replacement: "won't", explanation: "Kulangan ng apostrophe ang 'won't'." },
-        { regex: /\bim\b/gi, replacement: "I'm", explanation: "Dapat 'I'm'." },
-        { regex: /\bmore better\b/gi, replacement: "better", explanation: "Hindi kailangan ng 'more' sa 'better'." },
-        { regex: /\ba apple\b/gi, replacement: "an apple", explanation: "Gamitin ang 'an' bago ang vowel sound na 'apple'." }
-      ];
+async function aiCorrection(text) {
+  const key = $("apiKey").value.trim();
+  const endpoint = $("endpoint").value.trim();
+  const model = $("model").value.trim();
 
-      rules.forEach((rule) => {
-        const matches = fixed.match(rule.regex);
-        if (matches) {
-          matches.forEach((m) => {
-            if (m !== rule.replacement) {
-              issues.push({
-                original: m,
-                suggestion: rule.replacement,
-                explanation: rule.explanation
-              });
-            }
-          });
-          fixed = fixed.replace(rule.regex, rule.replacement);
-        }
-      });
+  if (!key) throw new Error("No AI key entered.");
 
-      if (fixed.length > 0 && /[a-z]/.test(fixed[0])) {
-        const capitalized = fixed[0].toUpperCase() + fixed.slice(1);
-        if (capitalized !== fixed) {
-          issues.push({
-            original: fixed.slice(0, 12),
-            suggestion: capitalized.slice(0, 12),
-            explanation: "Dapat naka-capital letter ang simula ng pangungusap."
-          });
-          fixed = capitalized;
-        }
-      }
+  const prompts = {
+    correct: "Correct grammar, spelling, punctuation, and sentence structure while preserving meaning and tone.",
+    reconstruct: "Completely reconstruct incorrect or confusing sentences when necessary. Preserve intended meaning and make the English grammatically correct and natural.",
+    natural: "Correct the text and rewrite it into natural, fluent everyday English without changing the original meaning."
+  };
 
-      return { correctedText: fixed, issues };
+  const instruction = `
+You are SpeakBetter AI, an advanced English grammar correction
+and sentence reconstruction assistant.
+
+Correct the user's text, even if the sentence is extremely incorrect.
+
+Handle grammar, spelling, tense, word order, sentence structure,
+subject-verb agreement, articles, prepositions, pronouns, questions,
+indirect questions, reported speech, punctuation, fragments,
+run-on sentences, comparisons, modals, conditionals, passive voice,
+unnatural expressions, and multiple errors together.
+
+Mode: ${prompts[mode]}
+
+Rules:
+- Preserve meaning and intended message.
+- Do not invent facts.
+- Reconstruct whole sentences if needed.
+- Use natural English.
+- If text is already correct, keep it.
+- Correct every sentence in longer text.
+- Explain corrections simply.
+- Respond ONLY as valid JSON using this format:
+
+{
+  "correctedText": "corrected text",
+  "summary": "short explanation",
+  "corrections": [
+    {
+      "original": "wrong part",
+      "corrected": "correct part",
+      "explanation": "simple explanation"
     }
+  ]
+}
 
-    async function checkGrammar() {
-      const originalText = inputText.value.trim();
-      if (!originalText) {
-        statusBox.className = "status-box error";
-        statusBox.textContent = "Maglagay muna ng pangungusap.";
-        return;
-      }
+Text:
+${text}
+`;
 
-      const now = Date.now();
-      if (now - lastCheckTime < 1500) {
-        statusBox.className = "status-box";
-        statusBox.textContent = "Sandali lang—maghintay ng 1–2 segundo bago mag-check ulit.";
-        return;
-      }
-      lastCheckTime = now;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + key
+    },
+    body: JSON.stringify({
+      model: model,
+      input: instruction
+    })
+  });
 
-      checkBtn.disabled = true;
-      checkBtn.textContent = "Checking...";
-      issuesList.innerHTML = "";
-      issuesTitle.style.display = "none";
-      statusBox.className = "status-box";
-      statusBox.textContent = "Sinusuri ang grammar, phrasing, at spelling...";
+  if (!response.ok) {
+    let message = "AI API request failed (" + response.status + ").";
+    try {
+      const err = await response.json();
+      message = err.error?.message || message;
+    } catch {}
+    throw new Error(message);
+  }
 
-      // Step 1: Run local phrasing & Taglish-to-English rules first
-      const localResult = localPhrasingCheck(originalText);
-      let workingText = localResult.correctedText;
-      let allIssues = [...localResult.issues];
+  const data = await response.json();
 
-      try {
-        // Step 2: Run LanguageTool online check on the updated text
-        const params = new URLSearchParams();
-        params.append("text", workingText);
-        params.append("language", "en-US");
+  let output = data.output_text || "";
 
-        const res = await fetch("https://api.languagetool.org/v2/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString()
-        });
-
-        if (!res.ok) throw new Error(`Server status ${res.status}`);
-
-        const data = await res.json();
-        const matches = data.matches || [];
-
-        if (matches.length > 0) {
-          let corrected = workingText;
-          const sortedMatches = [...matches].sort((a, b) => b.offset - a.offset);
-
-          sortedMatches.forEach((m) => {
-            const orig = workingText.slice(m.offset, m.offset + m.length);
-            const suggestion = m.replacements?.[0]?.value;
-            if (suggestion) {
-              corrected =
-                corrected.slice(0, m.offset) +
-                suggestion +
-                corrected.slice(m.offset + m.length);
-              allIssues.push({
-                original: orig,
-                suggestion,
-                explanation: m.message
-              });
-            }
-          });
-          workingText = corrected;
-        }
-      } catch (err) {
-        // If online server fails/limits, keep the localResult
-      } finally {
-        currentCorrectedText = workingText;
-        previewBox.textContent = workingText;
-
-        if (allIssues.length === 0 && workingText === originalText) {
-          statusBox.className = "status-box ok";
-          statusBox.textContent = "Walang nakitang error. Tama na ang pangungusap!";
-          fixAllBtn.disabled = true;
-          fixAllBtn.classList.remove("ready");
-        } else {
-          renderIssues(allIssues);
-          statusBox.className = "status-box";
-          statusBox.textContent = `May nakitang ${allIssues.length} pagbabago. I-click ang "Fix All" para maitama.`;
-          fixAllBtn.disabled = false;
-          fixAllBtn.classList.add("ready");
-        }
-
-        setTimeout(() => {
-          checkBtn.disabled = false;
-          checkBtn.textContent = "Check Grammar";
-        }, 1200);
-      }
-    }
-
-    function renderIssues(issues) {
-      issuesList.innerHTML = "";
-      if (!issues.length) return;
-      issuesTitle.style.display = "block";
-      issues.forEach((item) => {
-        const div = document.createElement("div");
-        div.className = "issue-card";
-        div.innerHTML = `
-          <div>
-            <span class="old-text">${escapeHtml(item.original)}</span>
-            <span class="new-text">→ ${escapeHtml(item.suggestion)}</span>
-          </div>
-          <div class="issue-reason">${escapeHtml(item.explanation || "")}</div>
-        `;
-        issuesList.appendChild(div);
-      });
-    }
-
-    function escapeHtml(str) {
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    checkBtn.addEventListener("click", checkGrammar);
-
-    fixAllBtn.addEventListener("click", () => {
-      if (!currentCorrectedText) return;
-      inputText.value = currentCorrectedText;
-      updateCharCount();
-      statusBox.className = "status-box ok";
-      statusBox.textContent = "Naitama na ang text!";
-      fixAllBtn.disabled = true;
-      fixAllBtn.classList.remove("ready");
-      issuesList.innerHTML = "";
-      issuesTitle.style.display = "none";
-    });
-
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(inputText.value);
-      copyBtn.textContent = "Copied ✓";
-      setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
-    });
-
-    copyCorrectedBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(previewBox.textContent);
-      copyCorrectedBtn.textContent = "Copied ✓";
-      setTimeout(() => (copyCorrectedBtn.textContent = "Copy Corrected Text"), 1500);
-    });
-
-    clearBtn.addEventListener("click", () => {
-      inputText.value = "";
-      previewBox.textContent = "";
-      currentCorrectedText = "";
-      issuesList.innerHTML = "";
-      issuesTitle.style.display = "none";
-      fixAllBtn.disabled = true;
-      fixAllBtn.classList.remove("ready");
-      statusBox.className = "status-box";
-      statusBox.textContent = "Na-clear na.";
-      updateCharCount();
-    });
-
-    function speakText(text) {
-      if (!text.trim()) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      window.speechSynthesis.speak(u);
-    }
-
-    listenBtn.addEventListener("click", () => speakText(inputText.value));
-    listenCorrectedBtn.addEventListener("click", () => speakText(previewBox.textContent));
-
-    speakBtn.addEventListener("click", () => {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("Hindi suportado ang speech recognition sa browser na ito.");
-        return;
-      }
-      if (isListening && recognition) {
-        recognition.stop();
-        return;
-      }
-      recognition = new SR();
-      recognition.lang = "en-US";
-      recognition.onstart = () => {
-        isListening = true;
-        speakBtn.textContent = "⏹ Stop";
-        speakBtn.classList.add("btn-listening");
-      };
-      recognition.onresult = (e) => {
-        const transcript = e.results[0][0].transcript;
-        inputText.value = inputText.value ? `${inputText.value.trim()} ${transcript}` : transcript;
-        updateCharCount();
-        previewBox.textContent = inputText.value;
-      };
-      recognition.onend = () => {
-        isListening = false;
-        speakBtn.textContent = "🎤 Speak";
-        speakBtn.classList.remove("btn-listening");
-      };
-      recognition.start();
-    });
-  </script>
-</body>
-</html>ch("https://api.languagetool.org/v2/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString()
-        });
-
-        if (!res.ok) throw new Error(`Server status ${res.status}`);
-
-        const data = await res.json();
-        const matches = data.matches || [];
-
-        if (matches.length === 0) {
-          const fallback = localFallbackCheck(text);
-          currentCorrectedText = fallback.correctedText;
-          previewBox.textContent = fallback.correctedText;
-
-          if (fallback.correctedText !== text) {
-            renderIssues(fallback.issues);
-            statusBox.className = "status-box";
-            statusBox.textContent = `May nakitang ${fallback.issues.length} pagbabago. I-click ang "Fix All".`;
-            fixAllBtn.disabled = false;
-            fixAllBtn.classList.add("ready");
-          } else {
-            statusBox.className = "status-box ok";
-            statusBox.textContent = "Walang nakitang error. Tama na ang pangungusap!";
-            fixAllBtn.disabled = true;
-            fixAllBtn.classList.remove("ready");
-          }
-        } else {
-          let corrected = text;
-          const sortedMatches = [...matches].sort((a, b) => b.offset - a.offset);
-          const issues = [];
-
-          sortedMatches.forEach((m) => {
-            const original = text.slice(m.offset, m.offset + m.length);
-            const suggestion = m.replacements?.[0]?.value;
-            if (suggestion) {
-              corrected =
-                corrected.slice(0, m.offset) +
-                suggestion +
-                corrected.slice(m.offset + m.length);
-              issues.unshift({
-                original,
-                suggestion,
-                explanation: m.message
-              });
-            }
-          });
-
-          currentCorrectedText = corrected;
-          previewBox.textContent = corrected;
-          renderIssues(issues);
-
-          statusBox.className = "status-box";
-          statusBox.textContent = `May nakitang ${issues.length} pagbabago. I-click ang "Fix All" para maitama.`;
-          fixAllBtn.disabled = false;
-          fixAllBtn.classList.add("ready");
-        }
-      } catch (err) {
-        const fallback = localFallbackCheck(text);
-        currentCorrectedText = fallback.correctedText;
-        previewBox.textContent = fallback.correctedText;
-        renderIssues(fallback.issues);
-        statusBox.className = "status-box";
-        statusBox.textContent = "Naka-backup check mode ngayon dahil nag-limit o bumagal ang online server.";
-        if (fallback.correctedText !== text) {
-          fixAllBtn.disabled = false;
-          fixAllBtn.classList.add("ready");
-        }
-      } finally {
-        setTimeout(() => {
-          checkBtn.disabled = false;
-          checkBtn.textContent = "Check Grammar";
-        }, 1200);
+  if (!output && Array.isArray(data.output)) {
+    for (const block of data.output) {
+      for (const part of (block.content || [])) {
+        if (part.type === "output_text") output += part.text;
       }
     }
+  }
 
-    function renderIssues(issues) {
-      issuesList.innerHTML = "";
-      if (!issues.length) return;
-      issuesTitle.style.display = "block";
-      issues.forEach((item) => {
-        const div = document.createElement("div");
-        div.className = "issue-card";
-        div.innerHTML = `
-          <div>
-            <span class="old-text">${escapeHtml(item.original)}</span>
-            <span class="new-text">→ ${escapeHtml(item.suggestion)}</span>
-          </div>
-          <div class="issue-reason">${escapeHtml(item.explanation || "")}</div>
-        `;
-        issuesList.appendChild(div);
-      });
+  if (!output) throw new Error("AI returned an empty response.");
+
+  output = output.replace(/```json/gi,"").replace(/```/g,"").trim();
+
+  return JSON.parse(output);
+}
+
+/* Free grammar-check fallback using LanguageTool */
+async function freeGrammarCheck(text) {
+  const body = new URLSearchParams();
+  body.set("text", text);
+  body.set("language", "en-US");
+
+  const response = await fetch("https://api.languagetool.org/v2/check", {
+    method: "POST",
+    headers: {"Content-Type":"application/x-www-form-urlencoded"},
+    body
+  });
+
+  if (!response.ok) {
+    throw new Error("Free grammar service is currently unavailable.");
+  }
+
+  const data = await response.json();
+  let corrected = text;
+  const matches = data.matches || [];
+
+  /* Apply suggestions from the end to preserve indexes */
+  const usable = matches
+    .filter(m => m.replacements && m.replacements.length)
+    .sort((a,b) => b.offset - a.offset);
+
+  const correctionNotes = [];
+
+  usable.forEach(m => {
+    const replacement = m.replacements[0].value;
+    const original = corrected.substring(m.offset, m.offset + m.length);
+
+    corrected =
+      corrected.substring(0, m.offset) +
+      replacement +
+      corrected.substring(m.offset + m.length);
+
+    correctionNotes.push({
+      original: original,
+      corrected: replacement,
+      explanation: m.message || "Grammar or spelling suggestion."
+    });
+  });
+
+  return {
+    correctedText: corrected,
+    summary: matches.length
+      ? "Grammar suggestions were found. This free fallback mainly detects grammar and spelling errors; it may not fully reconstruct complex sentences."
+      : "No issues were detected by the free grammar checker.",
+    corrections: correctionNotes.reverse()
+  };
+}
+
+$("check").addEventListener("click", async () => {
+  const text = $("input").value.trim();
+
+  if (!text) {
+    status("Please enter text first.", true);
+    return;
+  }
+
+  $("check").disabled = true;
+  $("check").textContent = "Analyzing...";
+  $("result").classList.remove("show");
+
+  try {
+    let result;
+
+    if ($("apiKey").value.trim()) {
+      status("AI is analyzing meaning, grammar, and sentence structure...");
+      result = await aiCorrection(text);
+
+      showResults(
+        result.correctedText,
+        result.summary,
+        result.corrections || []
+      );
+
+      status("AI correction completed!");
+    } else {
+      status("Using free grammar checker. For full sentence reconstruction, connect an AI service in settings.");
+
+      result = await freeGrammarCheck(text);
+
+      showResults(
+        result.correctedText,
+        result.summary,
+        result.corrections || []
+      );
+
+      status("Free grammar check completed. AI reconstruction requires an AI connection.");
     }
 
-    function escapeHtml(str) {
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+    $("result").scrollIntoView({behavior:"smooth",block:"start"});
 
-    checkBtn.addEventListener("click", checkGrammar);
+  } catch (error) {
+    status(error.message || "Something went wrong.", true);
+  } finally {
+    $("check").disabled = false;
+    $("check").textContent = "✦ Correct My Text";
+  }
+});
 
-    fixAllBtn.addEventListener("click", () => {
-      if (!currentCorrectedText) return;
-      inputText.value = currentCorrectedText;
-      updateCharCount();
-      statusBox.className = "status-box ok";
-      statusBox.textContent = "Naitama na ang text!";
-      fixAllBtn.disabled = true;
-      fixAllBtn.classList.remove("ready");
-      issuesList.innerHTML = "";
-      issuesTitle.style.display = "none";
-    });
+$("clear").addEventListener("click", () => {
+  $("input").value = "";
+  $("counter").textContent = "0 / 12,000 characters";
+  $("result").classList.remove("show");
+  $("status").className = "status";
+  lastCorrected = "";
+});
 
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(inputText.value);
-      copyBtn.textContent = "Copied ✓";
-      setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
-    });
+$("apply").addEventListener("click", () => {
+  if (!lastCorrected) return;
 
-    copyCorrectedBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(previewBox.textContent);
-      copyCorrectedBtn.textContent = "Copied ✓";
-      setTimeout(() => (copyCorrectedBtn.textContent = "Copy Corrected Text"), 1500);
-    });
+  $("input").value = lastCorrected;
+  $("counter").textContent =
+    `${lastCorrected.length.toLocaleString()} / 12,000 characters`;
 
-    clearBtn.addEventListener("click", () => {
-      inputText.value = "";
-      previewBox.textContent = "";
-      currentCorrectedText = "";
-      issuesList.innerHTML = "";
-      issuesTitle.style.display = "none";
-      fixAllBtn.disabled = true;
-      fixAllBtn.classList.remove("ready");
-      statusBox.className = "status-box";
-      statusBox.textContent = "Na-clear na.";
-      updateCharCount();
-    });
+  $("result").classList.remove("show");
+  status("Corrected text applied!");
+});
 
-    function speakText(text) {
-      if (!text.trim()) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      window.speechSynthesis.speak(u);
-    }
+$("copy").addEventListener("click", async () => {
+  if (!lastCorrected) return;
 
-    listenBtn.addEventListener("click", () => speakText(inputText.value));
-    listenCorrectedBtn.addEventListener("click", () => speakText(previewBox.textContent));
+  try {
+    await navigator.clipboard.writeText(lastCorrected);
+    status("Corrected text copied!");
+  } catch {
+    status("Copy failed. Please copy the text manually.", true);
+  }
+});
+</script>
 
-    speakBtn.addEventListener("click", () => {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("Hindi suportado ang speech recognition sa browser na ito.");
-        return;
-      }
-      if (isListening && recognition) {
-        recognition.stop();
-        return;
-      }
-      recognition = new SR();
-      recognition.lang = "en-US";
-      recognition.onstart = () => {
-        isListening = true;
-        speakBtn.textContent = "⏹ Stop";
-        speakBtn.classList.add("btn-listening");
-      };
-      recognition.onresult = (e) => {
-        const transcript = e.results[0][0].transcript;
-        inputText.value = inputText.value ? `${inputText.value.trim()} ${transcript}` : transcript;
-        updateCharCount();
-        previewBox.textContent = inputText.value;
-      };
-      recognition.onend = () => {
-        isListening = false;
-        speakBtn.textContent = "🎤 Speak";
-        speakBtn.classList.remove("btn-listening");
-      };
-      recognition.start();
-    });
-  </script>
 </body>
 </html>
